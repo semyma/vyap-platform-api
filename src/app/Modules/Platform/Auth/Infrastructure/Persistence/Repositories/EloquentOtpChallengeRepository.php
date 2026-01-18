@@ -19,9 +19,36 @@ final class EloquentOtpChallengeRepository implements OtpChallengeRepository
             'phone'      => $challenge->phone->nationalNumber,
             'purpose'    => $challenge->purpose,
             'otp_hash'   => $challenge->otpHash,
-            'expires_at' => $challenge->expiresAtEpoch,
+            'expires_at' => $challenge->expiresAtEpoch, // epoch seconds
             'used'       => $challenge->used,
         ]);
+    }
+
+    public function findLatestActiveByPhone(PhoneNumber $phone): ?OtpChallenge
+    {
+        $row = AuthOtpChallengeModel::query()
+            ->where('dial_code', $phone->dialCode)
+            ->where('phone', $phone->nationalNumber)
+            ->where('used', false)
+            ->where('expires_at', '>', time()) // column is expires_at (epoch seconds)
+            ->orderByDesc('id')
+            ->first();
+
+        if ($row === null) {
+            return null;
+        }
+
+        return new OtpChallenge(
+            token: (string) $row->token,
+            phone: new PhoneNumber(
+                dialCode: (string) $row->dial_code,
+                nationalNumber: (string) $row->phone,
+            ),
+            purpose: (string) $row->purpose,
+            otpHash: (string) $row->otp_hash,
+            expiresAtEpoch: (int) $row->expires_at,
+            used: (bool) $row->used,
+        );
     }
 
     public function findByToken(string $token): ?OtpChallenge
@@ -35,13 +62,13 @@ final class EloquentOtpChallengeRepository implements OtpChallengeRepository
         }
 
         return new OtpChallenge(
-            token: $row->token,
+            token: (string) $row->token,
             phone: new PhoneNumber(
-                dialCode: $row->dial_code,
-                nationalNumber: $row->phone
+                dialCode: (string) $row->dial_code,
+                nationalNumber: (string) $row->phone,
             ),
-            purpose: $row->purpose,
-            otpHash: $row->otp_hash,
+            purpose: (string) $row->purpose,
+            otpHash: (string) $row->otp_hash,
             expiresAtEpoch: (int) $row->expires_at,
             used: (bool) $row->used,
         );

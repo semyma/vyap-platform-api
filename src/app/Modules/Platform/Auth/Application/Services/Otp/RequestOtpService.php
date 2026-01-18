@@ -35,12 +35,12 @@ $expiresAt = time() + 300;
 
         $this->otpChallenges->create($challenge);
 
-      return [
-    'otp_token' => $token,
+     return [
+    'sent' => true,
     'expires_in_seconds' => 300,
-    // TEMP for dev only (remove later)
     'dev_otp' => app()->environment('local') ? $otp : null,
 ];
+
 
     }
 }

@@ -22,7 +22,7 @@ final class VerifyOtpController
             dialCode: (string) $request->string('dial_code'),
             phone: preg_replace('/\D+/', '', (string) $request->string('phone')) ?? '',
             otp: (string) $request->string('otp'),
-            otpToken: (string) $request->string('otp_token'),
+            
         );
 
         $out = $this->service->execute($dto);

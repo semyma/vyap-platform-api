@@ -10,6 +10,6 @@ final readonly class VerifyOtpDTO
         public string $dialCode,
         public string $phone,
         public string $otp,
-        public string $otpToken, // server-issued token from request step
+       
     ) {}
 }
