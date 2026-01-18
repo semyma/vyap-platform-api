@@ -1,0 +1,23 @@
+# Laravel
+/vendor
+/node_modules
+/public/storage
+/storage/*.key
+/.env
+/.env.*
+/bootstrap/cache/*.php
+
+# Logs
+/storage/logs
+*.log
+
+# IDE
+.idea
+.vscode
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+/docker/mysql/data
