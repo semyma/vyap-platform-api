@@ -39,4 +39,5 @@ return [
 
     // ✅ Modular Monolith Loader
     App\Providers\ModulesServiceProvider::class,
+    App\Modules\Platform\Subscriptions\Infrastructure\Providers\SubscriptionsServiceProvider::class,
 ];
