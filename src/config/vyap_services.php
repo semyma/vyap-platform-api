@@ -21,7 +21,7 @@ return [
                     [
                         'plan_code' => 'yearly',
                         'label' => 'Yearly',
-                        'price' => 2999,
+                        'price' => 1999,
                         'duration_days' => 365,
                         'recommended' => true,
                         'savings_note' => 'Save 2 months',
@@ -48,5 +48,31 @@ return [
                 ],
             ],
         ],
+        [
+    'code' => 'delivery',
+    'name' => 'Delivery',
+    'description' => 'Delivery staff assignment and order tracking.',
+    'enabled' => true,
+
+    'pricing' => [
+        'currency' => 'INR',
+        'plans' => [
+            [
+                'plan_code' => 'monthly',
+                'label' => 'Monthly',
+                'price' => 249,
+                'duration_days' => 30,
+            ],
+            [
+                'plan_code' => 'yearly',
+                'label' => 'Yearly',
+                'price' => 1999,
+                'duration_days' => 365,
+                'recommended' => true,
+            ],
+        ],
+    ],
+],
+
     ],
 ];

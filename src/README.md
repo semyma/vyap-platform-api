@@ -1,59 +1,190 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Vyap Platform API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Monolithic Laravel 12 SaaS backend for **Vyap** — a multi‑service business platform (Billing, Rental, etc.) with OTP authentication, RBAC, subscriptions, and account/workspace support.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Current Status (Up to Step 19)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+This README reflects the system **as of now**, without future assumptions.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🧱 Architecture Overview
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **Framework**: Laravel 12 (Monolith, modular)
+- **Auth**: OTP + Laravel Sanctum
+- **RBAC**: Spatie Permissions (roles + permissions)
+- **Modules**:
+  - Platform/Auth
+  - Platform/Subscriptions
+  - Platform/Accounts (foundation)
+- **Pattern**:
+  - DTOs
+  - Services
+  - Repositories
+  - Domain Exceptions
+  - Middleware-based access control
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 👤 Authentication Flow (OTP)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+1. `POST /api/v1/auth/otp/request`
+2. `POST /api/v1/auth/otp/verify`
+3. On verify:
+   - Platform user created (if new)
+   - Default role assigned: `platform-user`
+   - Single active Sanctum token enforced (old tokens revoked)
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## 🔐 RBAC (Role Based Access Control)
 
-## Contributing
+### Platform Roles (global)
+- `platform-user`
+- `platform-admin`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Service Permissions (example: billing)
+- `billing.access`
+- `billing.sales.view`
+- `billing.sales.create`
+- `billing.sales.edit`
+- `billing.sales.cancel`
+- `billing.reports.view`
+- `billing.settings.manage`
 
-## Code of Conduct
+> ⚠️ Platform roles ≠ Account roles  
+> Platform roles are rare and global.  
+> Account roles are business-specific.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 🏢 Accounts (Workspace Foundation)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Tables
+- `accounts`
+- `account_users`
+  - `platform_user_id`
+  - `account_id`
+  - `role` (owner, staff, cashier, etc.)
+  - `active` (current working account)
 
-## License
+### Key Rules
+- One platform user → many accounts
+- User works in **one active account at a time**
+- Account context is required for all service actions
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## 📦 Subscriptions
+
+### Scope
+- Subscriptions are **per account**, not per user
+- Each account can subscribe to multiple services
+
+### Status
+- `active`
+- `expired`
+- `revoked`
+
+### Middleware
+```php
+subscribed:{serviceCode}
+```
+
+Prevents access if the active account has no valid subscription.
+
+---
+
+## 🛍 Store API (Developer Phase)
+
+### List services
+```
+GET /api/v1/store/services
+```
+
+### My services
+```
+GET /api/v1/store/my-services
+```
+
+### Subscribe (dev-only)
+```
+POST /api/v1/store/subscribe
+```
+
+> Purchases are disabled in production via environment check.
+
+---
+
+## 🧩 /me Endpoint (Step 19)
+
+Returns **user + active account context**:
+
+```json
+{
+  "ok": true,
+  "user": {
+    "id": 1,
+    "phone": "+91XXXXXXX"
+  },
+  "account": {
+    "id": 10,
+    "name": "ABC Traders",
+    "role": "owner"
+  }
+}
+```
+
+This allows frontend to show:
+
+> “You are logged into ABC Traders (Owner)”
+
+---
+
+## 🧠 Design Principles
+
+- No cross-account data leakage
+- No user-only subscriptions
+- Clean separation:
+  - Platform concerns
+  - Account concerns
+  - Service concerns
+- Incremental, MNC-grade architecture
+
+---
+
+## 🛠 Environment Notes
+
+- Store purchases enabled only in:
+  - `local`
+  - `staging`
+- Production requires payment integration (future)
+
+---
+
+## ⏭ Next Planned Steps
+
+- Step 20: Account Switching API
+- Move subscriptions fully to `account_id`
+- Service-level user roles (cashier, staff, etc.)
+- Payment gateway integration
+- Audit logs
+
+---
+
+## ✅ Current State Summary
+
+✔ OTP Auth  
+✔ Sanctum token control  
+✔ RBAC  
+✔ Subscription engine  
+✔ Store catalog + pricing  
+✔ Account foundation  
+✔ Subscription gating middleware  
+
+---
+
+**Vyap Platform API**  
+Designed for real-world Indian SMB SaaS use cases.

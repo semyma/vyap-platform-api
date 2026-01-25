@@ -7,6 +7,7 @@ namespace App\Modules\Platform\Subscriptions\Infrastructure\Persistence\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Modules\Platform\Auth\Infrastructure\Persistence\Models\PlatformUserModel;
+use App\Modules\Platform\Accounts\Infrastructure\Persistence\Models\AccountModel;
 
 final class SubscriptionModel extends Model
 {
@@ -30,4 +31,8 @@ final class SubscriptionModel extends Model
     {
         return $this->belongsTo(PlatformUserModel::class, 'platform_user_id');
     }
+    public function account(): BelongsTo
+{
+    return $this->belongsTo(AccountModel::class, 'account_id');
+}
 }

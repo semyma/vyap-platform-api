@@ -12,4 +12,11 @@ interface SubscriptionRepository
      * @return array<int, string> list of service codes (e.g. ["billing","rental"])
      */
     public function listActiveServiceCodes(int $platformUserId, int $nowEpoch): array;
+
+    public function hasActiveSubscriptionForAccount(
+    int $accountId,
+    string $serviceCode,
+    int $nowEpoch
+): bool;
+
 }

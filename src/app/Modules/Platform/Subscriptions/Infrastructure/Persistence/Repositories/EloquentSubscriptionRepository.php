@@ -28,6 +28,24 @@ final class EloquentSubscriptionRepository implements SubscriptionRepository
             ->exists();
     }
 
+
+    public function hasActiveSubscriptionForAccount(
+    int $accountId,
+    string $serviceCode,
+    int $nowEpoch
+): bool {
+    return SubscriptionModel::query()
+        ->where('account_id', $accountId)
+        ->where('service_code', $serviceCode)
+        ->where('status', 'active')
+        ->where(function ($q) use ($nowEpoch) {
+            $q->whereNull('ends_at')
+              ->orWhere('ends_at', '>', \Carbon\Carbon::createFromTimestamp($nowEpoch));
+        })
+        ->exists();
+}
+
+
     public function listActiveServiceCodes(int $platformUserId, int $nowEpoch): array
     {
         return SubscriptionModel::query()

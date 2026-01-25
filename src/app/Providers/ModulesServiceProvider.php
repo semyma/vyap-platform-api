@@ -12,6 +12,7 @@ final class ModulesServiceProvider extends ServiceProvider
     {
         $providers = [
             \App\Modules\Platform\Auth\Infrastructure\Providers\AuthModuleServiceProvider::class,
+             \App\Modules\Platform\Accounts\Infrastructure\Providers\AccountsModuleServiceProvider::class,
         ];
 
         foreach ($providers as $provider) {

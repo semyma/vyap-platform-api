@@ -3,6 +3,10 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Modules\Platform\Accounts\Http\Middleware\EnsureActiveAccount;
+use App\Modules\Platform\Accounts\Http\Middleware\EnsureAccountRole;
+use App\Modules\Platform\Accounts\Http\Middleware\EnsureAccountPermission;
+
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,7 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         'subscribed' => \App\Modules\Platform\Subscriptions\Http\Middleware\EnsureServiceSubscribed::class,
-        
+        'active.account' => EnsureActiveAccount::class,
+         'account.role' => EnsureAccountRole::class,
+         'account.perm' => EnsureAccountPermission::class,
     ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

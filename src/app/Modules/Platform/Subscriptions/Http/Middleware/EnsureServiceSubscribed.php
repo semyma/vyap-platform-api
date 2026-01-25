@@ -19,7 +19,6 @@ final class EnsureServiceSubscribed
     {
         $user = $request->user();
 
-        // Defensive: auth middleware should already handle this
         if ($user === null) {
             return response()->json([
                 'ok' => false,
@@ -28,8 +27,19 @@ final class EnsureServiceSubscribed
             ], 401);
         }
 
-        $hasSubscription = $this->subscriptions->hasActiveSubscription(
-            platformUserId: (int) $user->id,
+        // ✅ Active account must be resolved BEFORE this middleware (by active.account)
+        $accountId = $request->attributes->get('active_account_id');
+
+        if ($accountId === null) {
+            return response()->json([
+                'ok' => false,
+                'code' => 'NO_ACTIVE_ACCOUNT',
+                'message' => 'No active account selected. Switch/select an account.',
+            ], 409);
+        }
+
+        $hasSubscription = $this->subscriptions->hasActiveSubscriptionForAccount(
+            accountId: (int) $accountId,
             serviceCode: $serviceCode,
             nowEpoch: time(),
         );
@@ -38,7 +48,7 @@ final class EnsureServiceSubscribed
             return response()->json([
                 'ok' => false,
                 'code' => 'SERVICE_NOT_SUBSCRIBED',
-                'message' => "Service '{$serviceCode}' is not subscribed",
+                'message' => "Service '{$serviceCode}' is not subscribed for this account",
             ], 403);
         }
 

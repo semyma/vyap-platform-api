@@ -13,6 +13,8 @@ use App\Modules\Platform\Auth\Domain\Exceptions\OtpInvalidException;
 use App\Modules\Platform\Auth\Domain\Exceptions\OtpNotFoundException;
 use App\Modules\Platform\Auth\Domain\ValueObjects\PhoneNumber;
 use App\Modules\Platform\Auth\Infrastructure\Persistence\Models\PlatformUserModel;
+use App\Modules\Platform\Accounts\Infrastructure\Persistence\Models\AccountModel;
+use App\Modules\Platform\Accounts\Infrastructure\Persistence\Models\AccountUserModel;
 
 final class VerifyOtpService
 {
@@ -52,7 +54,28 @@ final class VerifyOtpService
         $this->otpChallenges->markUsed($challenge->token);
 
         // Create or fetch user
-        $user = $this->users->findByPhone($phone) ?? $this->users->createUser($phone);
+       $existingUser = $this->users->findByPhone($phone);
+
+if ($existingUser === null) {
+    // ✅ First-time login: create platform user
+    $user = $this->users->createUser($phone);
+
+    // ✅ Create Account (workspace)
+    $account = AccountModel::create([
+        'name' => null, // filled later via onboarding
+    ]);
+
+    // ✅ Attach user as account OWNER
+    AccountUserModel::create([
+        'account_id' => $account->id,
+        'platform_user_id' => $user->id,
+        'account_role' => 'owner',
+        'active' => true,
+    ]);
+} else {
+    $user = $existingUser;
+}
+
 
         /** @var PlatformUserModel $model */
         $model = PlatformUserModel::query()->findOrFail($user->id);
